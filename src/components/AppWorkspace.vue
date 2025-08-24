@@ -1,6 +1,6 @@
 <template>
   <div class="workspace">
-    <div class="flat" ref="flatRef">
+    <div class="flat" ref="flatRef" :style="`width:${flatWidth}px; height:${flatHeight}px`">
       <img alt="Vue logo" src="../assets/flat.webp">
     </div>
     <svg
@@ -13,9 +13,9 @@
         @mousemove="onMouseMove"
         @mouseup="onMouseUp"
         :style="{
-        left: `${flatBox.left + flatBox.width / 2 - svgSize / 2}px`,
-        top: `${flatBox.top + flatBox.height / 2 - svgSize / 2}px`,
-      }"
+          left: sunCircleLeft,
+          top: sunCircleTop,
+        }"
     >
       <!-- Base Circle -->
       <circle
@@ -76,14 +76,25 @@ import { createTimeOfInterest } from "astronomy-bundle/time"
 import { createSun } from "astronomy-bundle/sun"
 import { createLocation } from "astronomy-bundle/earth"
 
-const props = defineProps({
-  season: {
-    type: String,
-    required: true,
-    validator: (v) => ["spring", "summer", "autumn", "winter"].includes(v),
-  },
-  showSun: { type: Boolean, required: true },
+defineProps({
+  showSun: { type: Boolean, required: true }
 })
+const season = defineModel('season', {
+  type: String,
+  required: true,
+  default: 'autumn',
+  validator: (v) => ["spring", "summer", "autumn", "winter"].includes(v),
+})
+const flatWidth = defineModel('flatWidth')
+const flatHeight = defineModel('flatHeight')
+const sunCircleOffset = defineModel('sunCircleOffset', {
+  type: Number,
+  required: true,
+  default: 0
+})
+
+const sunCircleLeft = computed(() => `${(flatBox.left + flatBox.width / 2 - svgSize.value / 2) + sunCircleOffset.value}px`)
+const sunCircleTop = computed(() =>`${(flatBox.top + flatBox.height / 2 - svgSize.value / 2) + sunCircleOffset.value}px`)
 
 const flatRef = ref(null)
 const flatBox = reactive({ left: 0, top: 0, width: 0, height: 0 })
@@ -139,7 +150,7 @@ async function updateSun() {
     winter: new Date("2025-12-21T12:00:00Z"),
   }
 
-  const date = dateBySeason[props.season] || new Date()
+  const date = dateBySeason[season.value] || new Date()
   const toi0 = createTimeOfInterest.fromDate(date)
   const sun0 = createSun(toi0)
 
@@ -184,7 +195,7 @@ async function updateSun() {
   }
 }
 
-watch(() => props.season, updateSun, { immediate: true })
+watch(season, updateSun, { immediate: true })
 watch(radius, updateSun)
 watch(angle, updateSun)
 </script>
@@ -200,8 +211,6 @@ watch(angle, updateSun)
 .flat {
   position: relative;
   background: #ccc;
-  width: 400px;
-  height: 300px;
 }
 .flat img {
   width: 100%;

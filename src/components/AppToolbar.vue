@@ -12,25 +12,44 @@
             type="radio"
             name="season"
             :value="s.value"
+            v-model="season"
             :checked="season === s.value"
-            @change="$emit('changeSeason', s.value)"
         />
         {{ s.label }}
       </label>
     </div>
+    <div>
+      <input
+          type="number"
+          name="flatWidth"
+          v-model="flatWidth"
+      />
+      <input
+          type="number"
+          name="flatHeight"
+          v-model="flatHeight"
+      />
+    </div>
+    <div>
+      <input
+          type="number"
+          name="sunCircleOffset"
+          v-model="sunCircleOffset"
+      />
+    </div>
+    <div></div>
   </div>
 </template>
 
 <script setup>
 import ToolbarButton from "./AppToolbarButton.vue"
 
-defineProps({
-  season: String,
-})
+const season = defineModel('season')
+const flatWidth = defineModel('flatWidth')
+const flatHeight = defineModel('flatHeight')
+const sunCircleOffset = defineModel('sunCircleOffset')
 
-defineEmits(["changeSeason", "addSun"])
-
-console.log()
+defineEmits(["addSun"])
 
 const seasons = [
   { label: "Весна", value: "spring" },
