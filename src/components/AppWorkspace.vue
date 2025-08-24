@@ -15,7 +15,7 @@
         top: `${flatBox.top + flatBox.height / 2 - svgSize / 2}px`,
       }"
     >
-      <!-- Круг -->
+      <!-- Base Circle -->
       <circle
           v-if="circleVisible"
           :cx="center.x"
@@ -25,7 +25,7 @@
           fill="none"
       />
 
-      <!-- Засечка (север) -->
+      <!-- Serif (north) -->
       <line
           v-if="circleVisible"
           :x1="center.x"
@@ -36,7 +36,7 @@
           stroke-width="2"
       />
 
-      <!-- Дуга солнца -->
+      <!-- Sun Arc -->
       <path
           v-if="circleVisible && sunArc"
           :d="sunArc"
@@ -45,7 +45,7 @@
           stroke-width="2"
       />
 
-      <!-- Точки -->
+      <!-- Points -->
       <circle
           v-for="(pt, idx) in sunPoints"
           :key="idx"
@@ -62,7 +62,7 @@
           font-size="12"
           fill="black"
       >
-        {{ ['Закат', 'Зенит', 'Рассвет'][idx] }}
+        {{ ['Sunset', 'Zenith', 'Sunrise'][idx] }}
       </text>
     </svg>
   </div>
@@ -86,7 +86,7 @@ const props = defineProps({
 const flatRef = ref(null)
 const flatBox = reactive({ left: 0, top: 0, width: 0, height: 0 })
 
-// после монтирования вычисляем позицию блока .flat
+// Receive data on the block position .flat
 onMounted(() => {
   const rect = flatRef.value.getBoundingClientRect()
   flatBox.left = rect.left + window.scrollX - 10
@@ -96,12 +96,11 @@ onMounted(() => {
 })
 
 const radius = ref(300)
-const svgSize = computed(() => radius.value * 2 + 50) // +50 запас
+const svgSize = computed(() => radius.value * 2 + 50) // Запас
 const center = computed(() => ({ x: svgSize.value / 2, y: svgSize.value / 2 }))
 const angle = ref(Math.PI / 2) // север вверх
 const circleVisible = true
 
-// Drag
 let dragging = false
 let dragMode = null
 function onMouseDown(e) {
@@ -126,41 +125,60 @@ function onMouseUp() {
   dragMode = null
 }
 
-// Sun
 const location = createLocation(55.75, 37.62, 200)
 const sunPoints = ref([])
 const sunArc = ref(null)
 
 async function updateSun() {
   const dateBySeason = {
-    spring: new Date("2024-03-21T12:00:00Z"),
-    summer: new Date("2024-06-21T12:00:00Z"),
-    autumn: new Date("2024-09-21T12:00:00Z"),
-    winter: new Date("2024-12-21T12:00:00Z"),
+    spring: new Date("2025-03-21T12:00:00Z"),
+    summer: new Date("2025-06-21T12:00:00Z"),
+    autumn: new Date("2025-09-21T12:00:00Z"),
+    winter: new Date("2025-12-21T12:00:00Z"),
   }
+
   const date = dateBySeason[props.season] || new Date()
   const toi0 = createTimeOfInterest.fromDate(date)
   const sun0 = createSun(toi0)
 
   const toiRise = await sun0.getRise(location)
-  const toiTransit = await sun0.getTransit(location)
   const toiSet = await sun0.getSet(location)
 
+  const start = toiRise.getDate()
+  const end = toiSet.getDate()
+  const stepMinutes = 10
+
   const coords = []
-  for (const toi of [toiRise, toiTransit, toiSet]) {
+  for (
+      let t = new Date(start);
+      t <= end;
+      t.setMinutes(t.getMinutes() + stepMinutes)
+  ) {
+    const toi = createTimeOfInterest.fromDate(new Date(t))
     const sunAtTime = createSun(toi)
-    const { azimuth } = await sunAtTime.getApparentTopocentricHorizontalCoordinates(location)
+    const { azimuth, altitude } =
+        await sunAtTime.getApparentTopocentricHorizontalCoordinates(location)
+
+    // Conversion to radians
     const az = (azimuth * Math.PI) / 180
-    const r = radius.value
+    const alt = (altitude * Math.PI) / 180
+
+    // The higher the sun, the closer to the center
+    const r = radius.value * (1 - alt / (Math.PI / 2))
+
     const x = center.value.x + r * Math.cos(az + angle.value)
     const y = center.value.y - r * Math.sin(az + angle.value)
+
     coords.push({ x, y })
   }
 
-  sunPoints.value = coords
-  if (coords.length === 3) {
-    const [a, b, c] = coords
-    sunArc.value = `M ${a.x} ${a.y} Q ${b.x} ${b.y} ${c.x} ${c.y}`
+  sunPoints.value = [coords[0], coords[Math.floor(coords.length / 2)], coords.at(-1)]
+
+  // Arc path
+  if (coords.length > 1) {
+    sunArc.value =
+        "M " +
+        coords.map((pt) => `${pt.x} ${pt.y}`).join(" L ")
   }
 }
 
