@@ -1,12 +1,12 @@
 <template>
-  <div class="h-screen flex flex-col">
+  <div class="app">
     <AppToolbar
         :season="season"
         @changeSeason="season = $event"
         @addSun="showSun = true"
     />
     <AppWorkspace
-        v-if="showSun"
+        :show-sun="showSun"
         :season="season"
     />
   </div>
@@ -20,3 +20,12 @@ import AppWorkspace from "./components/AppWorkspace.vue"
 const season = ref("summer") // по умолчанию лето
 const showSun = ref(false)
 </script>
+
+<style>
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+</style>

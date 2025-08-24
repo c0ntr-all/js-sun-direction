@@ -1,18 +1,18 @@
 <template>
-  <div class="flex items-center gap-4 bg-gray-100 p-2 shadow">
+  <div class="toolbar">
     <ToolbarButton
         icon="☀️"
         tooltip="Добавить расположение солнца"
         @click="$emit('addSun')"
     />
 
-    <div class="flex gap-2">
-      <label v-for="s in seasons" :key="s.value" class="flex items-center gap-1">
+    <div>
+      <label v-for="s in seasons" :key="s.value">
         <input
             type="radio"
             name="season"
             :value="s.value"
-            :checked="modelValue === s.value"
+            :checked="season === s.value"
             @change="$emit('changeSeason', s.value)"
         />
         {{ s.label }}
@@ -25,11 +25,12 @@
 import ToolbarButton from "./AppToolbarButton.vue"
 
 defineProps({
-  modelValue: String,
   season: String,
 })
 
 defineEmits(["changeSeason", "addSun"])
+
+console.log()
 
 const seasons = [
   { label: "Весна", value: "spring" },
@@ -38,3 +39,9 @@ const seasons = [
   { label: "Зима", value: "winter" },
 ]
 </script>
+<style>
+.toolbar {
+  position: absolute;
+  z-index: 999;
+}
+</style>
