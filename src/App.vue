@@ -1,26 +1,22 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="h-screen flex flex-col">
+    <AppToolbar
+        :season="season"
+        @changeSeason="season = $event"
+        @addSun="showSun = true"
+    />
+    <AppWorkspace
+        v-if="showSun"
+        :season="season"
+    />
+  </div>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>
+import { ref } from "vue"
+import AppToolbar from "./components/AppToolbar.vue"
+import AppWorkspace from "./components/AppWorkspace.vue"
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+const season = ref("summer") // по умолчанию лето
+const showSun = ref(false)
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
