@@ -1,6 +1,8 @@
 <template>
   <div class="workspace">
-    <div class="flat" ref="flatRef"></div>
+    <div class="flat" ref="flatRef">
+      <img alt="Vue logo" src="../assets/flat.webp">
+    </div>
     <svg
         v-if="showSun"
         ref="svgRef"
@@ -196,9 +198,13 @@ watch(angle, updateSun)
   position: relative;
 }
 .flat {
+  position: relative;
   background: #ccc;
   width: 400px;
   height: 300px;
+}
+.flat img {
+  width: 100%;
 }
 .sun {
   position: absolute;
